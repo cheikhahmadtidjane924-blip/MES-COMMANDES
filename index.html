@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bon de Commande Pro</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#333333">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <style>
+        /* Styles adaptés pour Mobile et Ordinateur */
+        body { font-family: 'Courier New', Courier, monospace; background-color: #e0e0e0; padding: 10px; margin: 0; }
+        .bon-commande { 
+            max-width: 900px; 
+            background: white; 
+            padding: 20px; 
+            border: 1px solid #ccc; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.2); 
+            margin: auto; 
+        }
+        .header { display: flex; flex-direction: column; border-bottom: 2px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
+        @media (min-width: 600px) { .header { flex-direction: row; justify-content: space-between; } }
+        
+        .section-titre { background: #f2f2f2; padding: 5px 10px; font-weight: bold; margin-bottom: 15px; border-left: 5px solid #333; font-size: 14px; }
+        
+        /* Inputs plus grands pour les doigts sur mobile */
+        input, textarea { width: 100%; border: none; border-bottom: 1px dashed #999; padding: 12px 0; font-size: 16px; outline: none; background: transparent; box-sizing: border-box; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; border-bottom: 2px solid #333; padding: 10px; font-size: 11px; }
+        td { padding: 5px; border-bottom: 1px solid #eee; }
+
+        .btn-ajouter { background: #27ae60; color: white; border: none; padding: 10px; cursor: pointer; margin-top: 10px; font-size: 13px; width: 100%; }
+        .btn-valider { width: 100%; background: #333; color: white; padding: 18px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 30px; font-size: 16px; }
+        
+        /* Grille adaptative */
+        .grid-client { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+        @media (min-width: 600px) { .grid-client { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="bon-commande">
+    <div class="header">
+        <div><h1>MON ENTREPRISE</h1></div>
+        <div style="text-align: right;"><p><strong>BON DE COMMANDE</strong><br>Date: <span id="date-du-jour"></span></p></div>
+    </div>
+
+    <form id="orderForm">
+        <div class="section-titre">COORDONNÉES CLIENT</div>
+        <div class="grid-client">
+            <input type="text" id="nom" placeholder="Nom / Entreprise" required>
+            <input type="tel" id="tel" placeholder="Téléphone" required>
+        </div>
+        <textarea id="adresse" rows="2" placeholder="Adresse complète de livraison" required></textarea>
+
+        <div class="section-titre" style="margin-top: 30px;">ARTICLES COMMANDÉS</div>
+        <div style="overflow-x: auto;"> 
+            <table id="tableArticles">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Réf.</th>
+                        <th style="width: 50%;">Désignation</th>
+                        <th style="width: 25%;">Qté</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" class="ref" placeholder="Ex: A1"></td>
+                        <td><input type="text" class="design" placeholder="Article"></td>
+                        <td><input type="number" class="qte" min="1" value="1"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <button type="button" class="btn-ajouter" onclick="ajouterLigne()">+ Ajouter un article</button>
+
+        <button type="submit" class="btn-valider">Envoyer la commande</button>
+    </form>
+</div>
+
+<script>
+    // --- ENREGISTREMENT SERVICE WORKER (Ajouté) ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker enregistré !'))
+          .catch(err => console.log('Erreur SW:', err));
+      });
+    }
+
+    document.getElementById('date-du-jour').textContent = new Date().toLocaleDateString('fr-FR');
+
+    function ajouterLigne() {
+        const table = document.getElementById('tableArticles').getElementsByTagName('tbody')[0];
+        const nouvelleLigne = table.insertRow();
+        nouvelleLigne.innerHTML = `
+            <td><input type="text" class="ref"></td>
+            <td><input type="text" class="design"></td>
+            <td><input type="number" class="qte" min="1" value="1"></td>
+        `;
+    }
+
+    const URL_API = "https://script.google.com/macros/s/AKfycbwKkDHpveTKPlai9O6aMqO_AovrUBgGsS7C2uqGY8Ub0gynP-2PWUt8AGTm6Y91JalQ_g/exec";
+
+    document.getElementById('orderForm').addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        const btn = e.target.querySelector('.btn-valider');
+        btn.textContent = "ENVOI EN COURS...";
+        btn.disabled = true;
+
+        const clientData = {
+            nom: document.getElementById('nom').value,
+            tel: document.getElementById('tel').value,
+            adresse: document.getElementById('adresse').value
+        };
+
+        const articles = [];
+        const lignes = document.querySelectorAll('#tableArticles tbody tr');
+        
+        lignes.forEach(ligne => {
+            const ref = ligne.querySelector('.ref').value;
+            const design = ligne.querySelector('.design').value;
+            const qte = ligne.querySelector('.qte').value;
+            if(ref || design) {
+                articles.push({ ref: ref, designation: design, quantite: qte });
+            }
+        });
+
+        fetch(URL_API, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            body: JSON.stringify({ client: clientData, articles: articles })
+        })
+        .then(() => {
+            alert("Félicitations ! Votre commande a été envoyée.");
+            document.getElementById('orderForm').reset();
+            btn.textContent = "Envoyer la commande";
+            btn.disabled = false;
+        })
+        .catch(error => {
+            alert("Erreur : " + error);
+            btn.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>
