@@ -1,21 +1,9 @@
 {
-  "name": "Mon Entreprise - Bon de Commande",
-  "short_name": "Commande",
-  "description": "Passer une commande rapidement",
+  "name": "App Commandes",
+  "short_name": "Commandes",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#e0e0e0",
+  "background_color": "#ffffff",
   "theme_color": "#333333",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "icons": [{ "src": "https://via.placeholder.com/192", "sizes": "192x192", "type": "image/png" }]
 }
