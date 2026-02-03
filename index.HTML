@@ -5,24 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bon de Commande GANAAR</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0f0f0; padding: 15px; margin: 0; }
-        .container { max-width: 800px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: auto; }
-        .header { border-bottom: 2px solid #333; margin-bottom: 20px; text-align: center; padding-bottom: 10px; }
+        body { font-family: sans-serif; background-color: #f0f0f0; padding: 10px; margin: 0; }
+        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: auto; }
         
-        /* Style du logo */
-        .logo-entreprise { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 10px; }
+        /* Style du logo ajusté pour gagner de l'espace */
+        .header { border-bottom: 2px solid #333; margin-bottom: 15px; text-align: center; padding-bottom: 5px; }
+        .logo-entreprise { 
+            width: 100%; 
+            max-width: 150px; /* Taille réduite et optimale */
+            height: auto; 
+            border-radius: 8px; 
+            margin-bottom: 5px; 
+            display: block; 
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+        .header h1 { font-size: 1.2em; margin: 5px 0; color: #333; }
         
-        .section-titre { background: #eee; padding: 10px; font-weight: bold; margin: 20px 0 10px 0; border-left: 4px solid #333; }
-        input, textarea, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        .section-titre { background: #eee; padding: 8px; font-weight: bold; margin: 15px 0 10px 0; border-left: 4px solid #333; font-size: 14px; }
+        
+        input, textarea, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        
         table { width: 100%; border-collapse: collapse; }
-        th { background: #333; color: white; padding: 10px; font-size: 14px; text-align: left; }
-        td { padding: 8px; border-bottom: 1px solid #ddd; vertical-align: middle; }
+        th { background: #333; color: white; padding: 8px; font-size: 13px; text-align: left; }
+        td { padding: 6px; border-bottom: 1px solid #ddd; vertical-align: middle; }
 
         /* Style des aperçus d'articles */
-        .img-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; display: none; margin-top: 8px; }
+        .img-preview { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; display: none; margin-top: 5px; }
         
         .btn-ajouter { background: #27ae60; color: white; border: none; padding: 12px; width: 100%; cursor: pointer; border-radius: 4px; margin-top: 10px; font-weight: bold; }
-        .btn-valider { background: #2c3e50; color: white; border: none; padding: 18px; width: 100%; cursor: pointer; border-radius: 4px; margin-top: 30px; font-size: 18px; font-weight: bold; }
+        .btn-valider { background: #2c3e50; color: white; border: none; padding: 15px; width: 100%; cursor: pointer; border-radius: 4px; margin-top: 20px; font-size: 16px; font-weight: bold; }
         .btn-suppr { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
         .loading { opacity: 0.5; pointer-events: none; }
     </style>
@@ -32,7 +44,8 @@
 <div class="container" id="main-container">
     <div class="header">
         <img src="LOGO.jpeg" alt="Logo GANAAR" class="logo-entreprise">
-        <p>Date: <span id="date-jour"></span></p>
+        <h1>Bon de Commande</h1>
+        <p style="font-size: 0.9em; margin: 0;">Date: <span id="date-jour"></span></p>
     </div>
 
     <form id="orderForm">
@@ -47,8 +60,8 @@
                 <thead>
                     <tr>
                         <th>Article</th>
-                        <th style="width: 80px;">Qté</th>
-                        <th style="width: 40px;"></th>
+                        <th style="width: 70px;">Qté</th>
+                        <th style="width: 30px;"></th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -60,7 +73,7 @@
 </div>
 
 <script>
-    // 1. CATALOGUE CORRIGÉ (Noms exacts et extensions .jfif)
+    // Catalogue avec les noms de fichiers exacts de votre GitHub
     const CATALOGUE = [
         { ref: "POUL", design: "Poulet de Chair", img: "POULET.jfif" },
         { ref: "OEUF", design: "Tablette d'oeufs", img: "OEUF.jfif" }
@@ -82,7 +95,7 @@
         row.innerHTML = `
             <td>
                 <select class="select-article" onchange="afficherApercu(this)">
-                    <option value="">-- Choisir un article --</option>
+                    <option value="">-- Choisir --</option>
                     ${genererOptions()}
                 </select>
                 <img class="img-preview" src="" alt="Aperçu">
