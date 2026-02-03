@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bon de Commande Pro</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#333333">
     <style>
+        /* Vos styles restent identiques */
         body { font-family: sans-serif; background-color: #f0f0f0; padding: 15px; margin: 0; }
         .container { max-width: 800px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: auto; }
         .header { border-bottom: 2px solid #333; margin-bottom: 20px; }
         .section-titre { background: #eee; padding: 10px; font-weight: bold; margin: 20px 0 10px 0; border-left: 4px solid #333; }
-        input, textarea { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #333; color: white; padding: 10px; font-size: 14px; text-align: left; }
         td { padding: 8px; border-bottom: 1px solid #ddd; }
@@ -40,20 +39,13 @@
             <table id="tableArticles">
                 <thead>
                     <tr>
-                        <th>Réf</th>
-                        <th>Désignation</th>
-                        <th>Qté</th>
-                        <th></th>
+                        <th>Article (Référence - Désignation)</th>
+                        <th style="width: 80px;">Qté</th>
+                        <th style="width: 40px;"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><input type="text" class="ref" placeholder="A1"></td>
-                        <td><input type="text" class="design" placeholder="Article"></td>
-                        <td><input type="number" class="qte" value="1" min="1"></td>
-                        <td></td>
-                    </tr>
-                </tbody>
+                    </tbody>
             </table>
         </div>
         <button type="button" class="btn-ajouter" onclick="ajouterLigne()">+ Ajouter un article</button>
@@ -62,38 +54,59 @@
 </div>
 
 <script>
-    // Configuration
+    // 1. VOTRE CATALOGUE D'ARTICLES
+    const CATALOGUE = [
+        { ref: "POUL", design: "Poulet de Chair" },
+        { ref: "OEUF", design: "Tablette d'oeufs" }
+    ];
+
     const URL_API = "https://script.google.com/macros/s/AKfycbxzhxTyTDIm66BE1BhaKrr4vwa4VB8sFnMdqjWKh2jH0F7-O6FpMtW3WspjiP_msosqBA/exec";
 
     document.getElementById('date-jour').textContent = new Date().toLocaleDateString('fr-FR');
 
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
+    // Générer les options du menu déroulant
+    function genererOptions() {
+        return CATALOGUE.map(art => 
+            `<option value="${art.ref}" data-design="${art.design}">${art.ref} - ${art.design}</option>`
+        ).join('');
     }
 
     function ajouterLigne() {
         const table = document.getElementById('tableArticles').getElementsByTagName('tbody')[0];
         const row = table.insertRow();
         row.innerHTML = `
-            <td><input type="text" class="ref"></td>
-            <td><input type="text" class="design"></td>
+            <td>
+                <select class="select-article">
+                    <option value="">-- Choisir un article --</option>
+                    ${genererOptions()}
+                </select>
+            </td>
             <td><input type="number" class="qte" value="1" min="1"></td>
             <td><button type="button" class="btn-suppr" onclick="this.parentElement.parentElement.remove()">×</button></td>
         `;
     }
 
+    // Ajouter une première ligne au chargement
+    window.onload = ajouterLigne;
+
     document.getElementById('orderForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const articles = [];
+        
         document.querySelectorAll('#tableArticles tbody tr').forEach(tr => {
-            const ref = tr.querySelector('.ref').value.trim();
-            const design = tr.querySelector('.design').value.trim();
-            if(ref || design) {
-                articles.push({ ref: ref, designation: design, quantite: tr.querySelector('.qte').value });
+            const select = tr.querySelector('.select-article');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if(select.value) {
+                articles.push({ 
+                    ref: select.value, 
+                    designation: selectedOption.getAttribute('data-design'), 
+                    quantite: tr.querySelector('.qte').value 
+                });
             }
         });
 
-        if(articles.length === 0) return alert("Veuillez ajouter au moins un article.");
+        if(articles.length === 0) return alert("Veuillez sélectionner au moins un article.");
 
         const btn = document.querySelector('.btn-valider');
         btn.disabled = true;
@@ -101,7 +114,11 @@
         document.getElementById('main-container').classList.add('loading');
 
         const data = {
-            client: { nom: document.getElementById('nom').value, tel: document.getElementById('tel').value, adresse: document.getElementById('adresse').value },
+            client: { 
+                nom: document.getElementById('nom').value, 
+                tel: document.getElementById('tel').value, 
+                adresse: document.getElementById('adresse').value 
+            },
             articles: articles
         };
 
@@ -114,6 +131,7 @@
             alert("Erreur réseau");
             btn.disabled = false;
             btn.textContent = "ENVOYER LA COMMANDE";
+            document.getElementById('main-container').classList.remove('loading');
         });
     });
 </script>
